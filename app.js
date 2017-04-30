@@ -272,6 +272,9 @@ function receivedMessage(event) {
         switch (users[senderID]) {
             case HELP_PHONE:
                 sendTextMessage(senderID,"Obrigado, algum ajudante vai entrar em contato com você!");
+                for (var id in helperAlert){
+                    sendTextMessage(id,"Olá, o número "+messageText+" precisa de você.");
+                }
                 users[senderID] = START;
                 break;
             case ALERT_ADD:
