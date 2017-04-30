@@ -306,7 +306,7 @@ function receivedMessage(event) {
                     //TODO ADD IMATE
                     sendTextMessage(senderID,"Qualquer coisa que nós suricatos obervarmos de diferente vamos alertar você! Obrigado :)");
                 } );
-                users[senderID] = WANT_ADD;
+                users[senderID] = START;
                 break;
             default:
                 sendButtonMessageStart(senderID);
