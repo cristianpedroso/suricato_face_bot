@@ -19,10 +19,13 @@ const
     request = require('request'),
     users = [],
     usersAlert = [],
+    helperAlert = [],
     START = "start",
     HELP_PHONE = "getPhone",
     ALERT_NAME = "alert_name",
-    ALERT_ADD = "alert_add";
+    ALERT_ADD = "alert_add",
+    WANT_PHONE = "wantPhone",
+    WANT_ADD = "want_add";
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -138,7 +141,19 @@ app.get('/alert', function (req, res) {
     var data = req.body;
 
     for (var id in usersAlert){
-        sendTextMessage(id,"CORRA PARA AS COLINAS");
+        sendTextMessage(id,"Más noticias!! Houve inundaçoes na sua área!");
+    }
+    for (var id in helperAlert){
+        sendTextMessage(id,"Precisamos da sua ajuda! Houve uma inundação na sua área.");
+    }
+    res.sendStatus(200);
+});
+
+app.get('/alertm', function (req, res) {
+    var data = req.body;
+
+    for (var id in usersAlert){
+        sendTextMessage(id,"Atenção! Os riscos de inundacoes estao aumentando na sua área");
     }
     res.sendStatus(200);
 });
@@ -280,6 +295,19 @@ function receivedMessage(event) {
                 } );
                 users[senderID] = START;
                 break;
+            case WANT_PHONE:
+                sendTextMessage(senderID,"Agora precisamos de seu endereço mas fique atento.",WANT_ADD,function () {
+                    sendTextMessage(senderID,"É necessário conter: Rua, Cidade, Estado nesse formato");
+                } );
+                users[senderID] = WANT_ADD;
+                break;
+            case WANT_ADD:
+                sendTextMessage(senderID,"Pronto agora está tudo certo!",ALERT_NAME,function () {
+                    //TODO ADD IMATE
+                    sendTextMessage(senderID,"Qualquer coisa que nós suricatos obervarmos de diferente vamos alertar você! Obrigado :)");
+                } );
+                users[senderID] = WANT_ADD;
+                break;
             default:
                 sendButtonMessageStart(senderID);
         }
@@ -318,10 +346,10 @@ function sendButtonMessageStart(recipientId) {
                             payload: "return_alert"
                         },
                         {
-                            type: "web_url",
-                            url: "http://www.suricatoalerta.com.br/",
-                            title: "Quero Ajudar!"
-                        }
+                            type: "postback",
+                            title: "Quero Ajudar!",
+                            payload: "we_help"
+                        },
                     ]
                 }
             }
@@ -331,6 +359,45 @@ function sendButtonMessageStart(recipientId) {
     callSendAPI(messageData);
 }
 
+/*
+ * Send start message using the Send API.
+ *
+ */
+function sendButtonRole(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "No que você pode ajudar?",
+                    buttons: [
+                        {
+                            type: "postback",
+                            title: "Engenheiro",
+                            payload: "help_eng"
+                        },
+                        {
+                            type: "postback",
+                            title: "Transportador",
+                            payload: "help_trans"
+                        },
+                        {
+                            type: "Outros",
+                            title: "Quero Ajudar!",
+                            payload: "help_others"
+                        },
+                    ]
+                }
+            }
+        }
+    };
+
+    callSendAPI(messageData);
+}
 /*
  * Delivery Confirmation Event
  *
@@ -378,7 +445,6 @@ function receivedPostback(event) {
 
     switch (payload) {
         case 'start_thread':
-
             sendButtonMessageStart(senderID);
             users[senderID] = START;
             break;
@@ -394,6 +460,25 @@ function receivedPostback(event) {
             });
             users[senderID] = ALERT_ADD;
             break;
+        case 'we_help':
+            helperAlert[senderID] = {
+                id: senderID
+            };
+            sendButtonRole(senderID);
+            break;
+        case "help_eng":
+            sendTextMessage(senderID, "Precisamos que você diga seu numero de telefone no formato (xx) xxxxx-xxxx.");
+            users[senderID] = WANT_PHONE;
+            break;
+        case "help_trans":
+            sendTextMessage(senderID, "Precisamos que você diga seu numero de telefone no formato (xx) xxxxx-xxxx.");
+            users[senderID] = WANT_PHONE;
+            break;
+        case "help_others":
+            sendTextMessage(senderID, "Precisamos que você diga seu numero de telefone no formato (xx) xxxxx-xxxx.");
+            users[senderID] = WANT_PHONE;
+            break;
+
         default:
             sendButtonMessageStart(senderID);
     }
