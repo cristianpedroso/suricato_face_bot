@@ -386,10 +386,10 @@ function sendButtonRole(recipientId) {
                             payload: "help_trans"
                         },
                         {
-                            type: "Outros",
-                            title: "Quero Ajudar!",
+                            type: "postback",
+                            title: "Outros!",
                             payload: "help_others"
-                        },
+                        }
                     ]
                 }
             }
